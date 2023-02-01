@@ -1,5 +1,9 @@
 defmodule Lab1 do
-  def hello do
-    IO.puts("Hello, PTR!")
+  def get_hello do
+    "Hello, PTR!"
+  end
+
+  def say_hello do
+    get_hello |> IO.puts()
   end
 end

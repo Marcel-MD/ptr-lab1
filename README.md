@@ -9,7 +9,7 @@ To run the program, execute the following commands.
 iex -S mix
 ```
 ```elixir
-iex> Lab1.hello()
+iex> Lab1.say_hello()
 ```
 
 To run the tests, execute the following commands.
