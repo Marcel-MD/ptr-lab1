@@ -1,6 +1,21 @@
 # Lab1
 
-**TODO: Add description**
+Laboratory work on Real Time Programming.
+
+## Run
+
+To run the program, execute the following commands.
+```bash
+iex -S mix
+```
+```elixir
+iex> Lab1.hello()
+```
+
+To run the tests, execute the following commands.
+```bash
+mix test
+```
 
 ## Installation
 
