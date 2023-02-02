@@ -94,4 +94,50 @@ defmodule Lab1 do
       end
     end)
   end
+
+  def one_row_words(list) do
+    rows = [
+      "qwertyuiop",
+      "asdfghjkl",
+      "zxcvbnm"
+    ]
+
+    for row <- rows,
+        word <- list,
+        Enum.all?(word |> String.downcase() |> String.graphemes(), fn x ->
+          String.contains?(row, x)
+        end) do
+      word
+    end
+  end
+
+  def encode_caesar(str, shift) do
+    str
+    |> String.to_charlist()
+    |> Enum.map(fn codepoint ->
+      if codepoint + shift <= 126 do
+        codepoint + shift
+      else
+        codepoint + shift - 94
+      end
+    end)
+    |> List.to_string()
+  end
+
+  def decode_caesar(str, shift) do
+    encode_caesar(str, -shift)
+  end
+
+  def group_anagrams(strings) do
+    strings
+    |> Enum.group_by(fn string ->
+      string
+      |> String.downcase()
+      |> String.split("")
+      |> Enum.sort()
+      |> List.to_string()
+    end)
+    |> Enum.map(fn {_key, group} -> group end)
+    |> Enum.to_list()
+  end
 end
