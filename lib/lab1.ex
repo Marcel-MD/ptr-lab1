@@ -5,10 +5,6 @@ defmodule Lab1 do
     "Hello, PTR!"
   end
 
-  def say_hello do
-    get_hello |> IO.puts()
-  end
-
   def is_prime?(n) when n < 2 do
     false
   end
@@ -139,5 +135,26 @@ defmodule Lab1 do
     end)
     |> Enum.map(fn {_key, group} -> group end)
     |> Enum.to_list()
+  end
+
+  def common_prefix(strings) do
+    Enum.reduce(strings, fn string, acc ->
+      if String.starts_with?(string, acc) do
+        acc
+      else
+        common_prefix(string, acc)
+      end
+    end)
+  end
+
+  def common_prefix(string1, string2) do
+    <<head1, tail1::binary>> = string1
+    <<head2, tail2::binary>> = string2
+
+    if head1 == head2 do
+      <<head1>> <> common_prefix(tail1, tail2)
+    else
+      <<>>
+    end
   end
 end
