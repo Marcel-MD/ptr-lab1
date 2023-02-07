@@ -9,6 +9,10 @@ defmodule Lab1 do
     false
   end
 
+  def is_prime?(n) when n < 4 do
+    true
+  end
+
   def is_prime?(n) do
     nums = 2..(n - 1)
     Enum.all?(nums, fn x -> rem(n, x) != 0 end)
@@ -155,6 +159,22 @@ defmodule Lab1 do
       <<head1>> <> common_prefix(tail1, tail2)
     else
       <<>>
+    end
+  end
+
+  def factorize(n) do
+    factorize(n, 2)
+  end
+
+  defp factorize(n, i) when n == 1 do
+    []
+  end
+
+  defp factorize(n, i) do
+    if is_prime?(i) && rem(n, i) == 0 do
+      [i | factorize(round(n / i), i)]
+    else
+      factorize(n, i + 1)
     end
   end
 end
