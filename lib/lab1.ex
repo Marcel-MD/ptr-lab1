@@ -85,6 +85,15 @@ defmodule Lab1 do
     rotate_left(tail ++ [head], n - 1)
   end
 
+  def list_right_angle_triangles() do
+    for a <- 1..20,
+        b <- 1..20,
+        c <- 1..40,
+        a + b > c and a + c > b and b + c > a and a * a + b * b == c * c do
+      {a, b, c}
+    end
+  end
+
   def remove_consecutive_duplicates(list) do
     Enum.reduce(list, [], fn x, acc ->
       if Enum.at(acc, -1) == x do
@@ -166,7 +175,7 @@ defmodule Lab1 do
     factorize(n, 2)
   end
 
-  defp factorize(n, i) when n == 1 do
+  defp factorize(n, _) when n == 1 do
     []
   end
 
@@ -176,5 +185,65 @@ defmodule Lab1 do
     else
       factorize(n, i + 1)
     end
+  end
+
+  def to_roman(n) do
+    to_roman(n, "")
+  end
+
+  defp to_roman(n, acc) when n == 0 do
+    acc
+  end
+
+  defp to_roman(n, acc) when n >= 1000 do
+    to_roman(n - 1000, acc <> "M")
+  end
+
+  defp to_roman(n, acc) when n >= 900 do
+    to_roman(n - 900, acc <> "CM")
+  end
+
+  defp to_roman(n, acc) when n >= 500 do
+    to_roman(n - 500, acc <> "D")
+  end
+
+  defp to_roman(n, acc) when n >= 400 do
+    to_roman(n - 400, acc <> "CD")
+  end
+
+  defp to_roman(n, acc) when n >= 100 do
+    to_roman(n - 100, acc <> "C")
+  end
+
+  defp to_roman(n, acc) when n >= 90 do
+    to_roman(n - 90, acc <> "XC")
+  end
+
+  defp to_roman(n, acc) when n >= 50 do
+    to_roman(n - 50, acc <> "L")
+  end
+
+  defp to_roman(n, acc) when n >= 40 do
+    to_roman(n - 40, acc <> "XL")
+  end
+
+  defp to_roman(n, acc) when n >= 10 do
+    to_roman(n - 10, acc <> "X")
+  end
+
+  defp to_roman(n, acc) when n >= 9 do
+    to_roman(n - 9, acc <> "IX")
+  end
+
+  defp to_roman(n, acc) when n >= 5 do
+    to_roman(n - 5, acc <> "V")
+  end
+
+  defp to_roman(n, acc) when n >= 4 do
+    to_roman(n - 4, acc <> "IV")
+  end
+
+  defp to_roman(n, acc) when n >= 1 do
+    to_roman(n - 1, acc <> "I")
   end
 end
