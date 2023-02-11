@@ -5,14 +5,26 @@ Laboratory work on Real Time Programming.
 ## Run
 
 To run the program, execute the following commands.
+
 ```bash
 iex -S mix
 ```
+
 ```elixir
 iex> Lab1.say_hello()
 ```
 
+## Run actors
+
+```elixir
+iex> pid = spawn(Talker, :loop, [])
+iex> send(pid, "Hello")
+```
+
+## Run tests
+
 To run the tests, execute the following commands.
+
 ```bash
 mix test
 ```
@@ -33,4 +45,3 @@ end
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/lab1>.
-
