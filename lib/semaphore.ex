@@ -1,6 +1,6 @@
 defmodule Semaphore do
-  def create_semaphore(count \\ 1) do
-    spawn(Semaphore, :loop, [count])
+  def new(count \\ 1) do
+    spawn(Semaphore, :loop, [count, []])
   end
 
   def acquire(pid) do
@@ -8,7 +8,6 @@ defmodule Semaphore do
     send(pid, {:acquire, self(), ref})
     receive do
       {:ok, ^ref} -> :ok
-      {:error, ^ref} -> :error
     end
   end
 
@@ -17,26 +16,33 @@ defmodule Semaphore do
     :ok
   end
 
-  def loop(count) do
+  def loop(count, queue) do
     receive do
       {:acquire, sender, ref} ->
         case count do
           0 ->
-            send(sender, {:error, ref})
-            loop(count)
+            loop(count, queue ++ [{sender, ref}])
 
           count ->
             send(sender, {:ok, ref})
-            loop(count-1)
+            loop(count-1, queue)
         end
 
       :release ->
         case count do
           0 ->
-            loop(count)
+            case queue do
+              [] ->
+                loop(count+1, queue)
+
+              [{sender, ref} | queue] ->
+                send(sender, {:ok, ref})
+                loop(count, queue)
+            end
+            loop(count, queue)
 
           count ->
-            loop(count+1)
+            loop(count+1, queue)
         end
     end
   end
