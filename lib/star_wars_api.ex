@@ -15,15 +15,13 @@ defmodule StarWarsApi do
   end
 end
 
-# GET /movies
-# GET /movies/:id
-# POST /movies
-# PUT /movies/:id
-# PATCH /movies/:id
-# DELETE /movies/:id
-
 defmodule StarWarsApi.Router do
   use Plug.Router
+
+  plug Plug.Parsers,
+    parsers: [:urlencoded, :json],
+    pass: ["*/*"],
+    json_decoder: Jason
 
   plug :match
   plug :dispatch
@@ -40,21 +38,21 @@ defmodule StarWarsApi.Router do
   end
 
   post "/movies" do
-    movie = Jason.decode!(conn.body_params["movie"])
+    movie = conn.body_params
     new_movie = StarWarsApi.InMemoryDb.create_movie(movie)
     send_resp(conn, 201, Jason.encode!(new_movie))
   end
 
   put "/movies/:id" do
     id = conn.params["id"] |> String.to_integer()
-    movie = Jason.decode!(conn.body_params["movie"])
+    movie = conn.body_params
     new_movie = StarWarsApi.InMemoryDb.update_movie(id, movie)
     send_resp(conn, 200, Jason.encode!(new_movie))
   end
 
   patch "/movies/:id" do
     id = conn.params["id"] |> String.to_integer()
-    movie = Jason.decode!(conn.body_params["movie"])
+    movie = conn.body_params
     new_movie = StarWarsApi.InMemoryDb.update_movie(id, movie)
     send_resp(conn, 200, Jason.encode!(new_movie))
   end
@@ -78,8 +76,13 @@ defmodule StarWarsApi.InMemoryDb do
   end
 
   def init(_) do
+    :ets.new(:movies_table, [:set, :public, :named_table])
+    :ok = load_movies_into_table(:movies_table)
+    {:ok, :movies_table}
+  end
 
-    state = [
+  defp load_movies_into_table(table) do
+    movies = [
       %{
         id: 1,
         title: "Star Wars: Episode IV - A New Hope",
@@ -139,16 +142,44 @@ defmodule StarWarsApi.InMemoryDb do
         title: "Star Wars: Episode III - Revenge of the Sith",
         director: "George Lucas",
         release_year: 2005
-      },
-      %{
-        id: 11,
-        title: "Star Wars: Episode III - Revenge of the Sith",
-        director: "George Lucas",
-        release_year: 2005
       }
     ]
 
-    {:ok, state}
+    Enum.each(movies, fn movie ->
+      :ets.insert(table, {movie[:id], movie})
+    end)
+  end
+
+  def handle_call(:get_all_movies, _from, table) do
+    movies = Enum.map(:ets.tab2list(table), fn {key, movie} -> Map.put(movie, :id, key) end)
+    {:reply, movies, table}
+  end
+
+  def handle_call({:get_movie, id}, _from, table) do
+    movies = :ets.lookup(table, id)
+    if length(movies) == 0 do
+      {:reply, nil, table}
+    else
+      {key, movie} = List.first(movies)
+      {:reply, %{movie | id: key}, table}
+    end
+  end
+
+  def handle_call({:create_movie, movie}, _from, table) do
+    id = :ets.info(table, :size) + 1
+    Map.put(movie, :id, id)
+    :ets.insert(table, {id, movie})
+    {:reply, :ok, table}
+  end
+
+  def handle_call({:update_movie, id, movie}, _from, table) do
+    :ets.insert(table, {id, movie})
+    {:reply, :ok, table}
+  end
+
+  def handle_call({:delete_movie, id}, _from, table) do
+    :ets.delete(table, id)
+    {:reply, :ok, table}
   end
 
   def get_all_movies do
@@ -170,30 +201,4 @@ defmodule StarWarsApi.InMemoryDb do
   def delete_movie(id) do
     GenServer.call(__MODULE__, {:delete_movie, id})
   end
-
-  def handle_call(:get_all_movies, _from, state) do
-    {:reply, state, state}
-  end
-
-  def handle_call({:get_movie, id}, _from, state) do
-    movie = Enum.find(state, fn movie -> movie.id == id end)
-    {:reply, movie, state}
-  end
-
-  def handle_call({:create_movie, movie}, _from, state) do
-    new_movie = Map.put(movie, :id, length(state) + 1)
-    {:reply, new_movie, [new_movie | state]}
-  end
-
-  def handle_call({:update_movie, id, movie}, _from, state) do
-    new_movie = Map.put(movie, :id, id)
-    new_state = Enum.map(state, fn m -> if m.id == id, do: new_movie, else: m end)
-    {:reply, new_movie, new_state}
-  end
-
-  def handle_call({:delete_movie, id}, _from, state) do
-    new_state = Enum.reject(state, fn m -> m.id == id end)
-    {:reply, :ok, new_state}
-  end
-
 end
