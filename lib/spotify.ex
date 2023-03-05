@@ -1,12 +1,11 @@
 defmodule Spotify do
   use HTTPoison.Base
 
-  defp headers() do
+  defp auth_headers() do
     token = File.read!("./secret.json")
     {:ok, %{"access_token" => access_token}} = Jason.decode(token)
     [
-      {"Authorization", "Bearer #{access_token}"},
-      {"Content-Type", "application/json"}
+      {"Authorization", "Bearer #{access_token}"}
     ]
   end
 
@@ -18,7 +17,7 @@ defmodule Spotify do
       HTTPoison.post!(
         "https://api.spotify.com/v1/users/#{user_id}/playlists",
         Jason.encode!(body_map),
-        headers()
+        [{"Content-Type", "application/json"} | auth_headers()]
       )
     {:ok, %{"id" => playlist_id}} = Jason.decode(response.body)
     playlist_id
@@ -32,7 +31,7 @@ defmodule Spotify do
       HTTPoison.post!(
         "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
         Jason.encode!(song),
-        headers()
+        [{"Content-Type", "application/json"} | auth_headers()]
       )
     response
   end
@@ -42,12 +41,11 @@ defmodule Spotify do
 
     image = File.read!(image_path)
     base64 = Base.encode64(image)
-    new_headers = [{"Content-Type", "image/jpg"} | headers()]
     response =
       HTTPoison.put!(
         "https://api.spotify.com/v1/playlists/#{playlist_id}/images",
         base64,
-        new_headers
+        [{"Content-Type", "image/jpeg"} | auth_headers()]
       )
     response
   end
@@ -58,9 +56,17 @@ defmodule Spotify do
     response =
       HTTPoison.get!(
         "https://api.spotify.com/v1/me",
-        headers()
+        [{"Content-Type", "application/json"} | auth_headers()]
       )
     {:ok, %{"id" => user_id}} = Jason.decode(response.body)
     user_id
+  end
+
+  def get_song_id() do
+    "2C4jYVZId6mxISa3HrBvGM"
+  end
+
+  def get_image_path() do
+    "./cover.jpg"
   end
 end

@@ -1088,6 +1088,85 @@ end
 
 Description: This project is a simple API that allows you to get, create, update, and delete movies from a database. The database is an ETS table. The API is built using Plug and Cowboy. The API is defined in the StarWarsApi.Router module. The database is defined in the StarWarsApi.InMemoryDb module. The database is started as a GenServer and is registered under the name StarWarsApi.InMemoryDb. The API uses the GenServer to access the database. The API is started as an Application and is registered under the name StarWarsApi. The API is started using the command `mix run --no-halt`. The API is stopped using the command Ctrl-C.
 
+**Task 3** -- Spotify API
+
+```elixir
+defmodule Spotify do
+  use HTTPoison.Base
+
+  defp auth_headers() do
+    token = File.read!("./secret.json")
+    {:ok, %{"access_token" => access_token}} = Jason.decode(token)
+    [
+      {"Authorization", "Bearer #{access_token}"}
+    ]
+  end
+
+  def new_playlist(name, user_id) do
+    HTTPoison.start()
+
+    body_map = %{"name" => name, "public" => false}
+    response =
+      HTTPoison.post!(
+        "https://api.spotify.com/v1/users/#{user_id}/playlists",
+        Jason.encode!(body_map),
+        [{"Content-Type", "application/json"} | auth_headers()]
+      )
+    {:ok, %{"id" => playlist_id}} = Jason.decode(response.body)
+    playlist_id
+  end
+
+  def add_song(playlist_id, song_id) do
+    HTTPoison.start()
+
+    song = ["spotify:track:#{song_id}"]
+    response =
+      HTTPoison.post!(
+        "https://api.spotify.com/v1/playlists/#{playlist_id}/tracks",
+        Jason.encode!(song),
+        [{"Content-Type", "application/json"} | auth_headers()]
+      )
+    response
+  end
+
+  def change_image(playlist_id, image_path) do
+    HTTPoison.start()
+
+    image = File.read!(image_path)
+    base64 = Base.encode64(image)
+    response =
+      HTTPoison.put!(
+        "https://api.spotify.com/v1/playlists/#{playlist_id}/images",
+        base64,
+        [{"Content-Type", "image/jpeg"} | auth_headers()]
+      )
+    response
+  end
+
+  def get_user_id() do
+    HTTPoison.start()
+
+    response =
+      HTTPoison.get!(
+        "https://api.spotify.com/v1/me",
+        [{"Content-Type", "application/json"} | auth_headers()]
+      )
+    {:ok, %{"id" => user_id}} = Jason.decode(response.body)
+    user_id
+  end
+
+  def get_song_id() do
+    "2C4jYVZId6mxISa3HrBvGM"
+  end
+
+  def get_image_path() do
+    "./cover.jpg"
+  end
+end
+```
+
+Description: This project is a simple API that allows you to create a new playlist, add a song to the playlist, and change the playlist image. The API uses the HTTPoison library to make requests to the Spotify API. `auth_headers()` function reads the access token from the secret.json file and returns the headers required to make requests to the Spotify API. `new_playlist(name, user_id)` function creates a new playlist with the name `name` for the user with the id `user_id`. `add_song(playlist_id, song_id)` function adds a song with the id `song_id` to the playlist with the id `playlist_id`. `change_image(playlist_id, image_path)` function changes the image of the playlist with the id `playlist_id` to the image located at the path `image_path`.
+
 ## Conclusion
 
 After performing this laboratory work I have learned how to write in functional programming language Elixir. What is the actor model and how to use it with OTP library. Also I have learned how to use Plug and Cowboy libraries to create a web server. I have learned how to use ETS tables to store data in memory.
